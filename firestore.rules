@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users コレクションから isAdmin フラグを取得する関数
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // ログイン済みかどうか
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // 自分のドキュメントか
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // spaces コレクション（駐車スペース）
+    // - 読み：ログイン済みなら誰でも
+    // - 書き：Firebase Console からのみ（アプリからは誰も書けない）
+    match /spaces/{spaceId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // reservations コレクション（予約）
+    // - 読み：自分の予約 or 管理人
+    // - 作成：ログイン済みで、userId が自分の uid と一致すること
+    // - 更新：本人（status を "denied" にするキャンセルのみ）or 管理人
+    // - 削除：管理人のみ
+    match /reservations/{reservationId} {
+      allow read: if isSignedIn() &&
+        (resource.data.userId == request.auth.uid || isAdmin());
+
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == "pending";
+
+      allow update: if isSignedIn() && (
+        // 本人によるキャンセル（pending → denied のみ）
+        (resource.data.userId == request.auth.uid &&
+          request.resource.data.status == "denied" &&
+          resource.data.status == "pending") ||
+        // 管理人による承認・否認
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // mail コレクション（メール送信キュー — Firebase Extensions が監視）
+    // - 作成：管理人のみ（承認・否認時に書き込む）
+    // - 読み・更新・削除：不可（Extensions が内部で処理）
+    match /mail/{mailId} {
+      allow create: if isAdmin();
+      allow read, update, delete: if false;
+    }
+
+    // logs コレクション（不正アクセスログ）
+    // - 読み：管理人のみ
+    // - 作成：ログイン済みなら誰でも（不正アクセス時に自分で書き込む）
+    // - 更新・削除：不可
+    match /logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    // users コレクション（アプリユーザー情報）
+    // - 読み：自分のドキュメントのみ
+    // - 書き：自分のドキュメントのみ（isAdmin は管理人が Firebase Console から操作）
+    match /users/{userId} {
+      // 自分のドキュメント、または管理人メール通知のための isAdmin:true ユーザー一覧取得
+      allow read: if isOwner(userId) || isSignedIn();
+      allow write: if isOwner(userId) &&
+        // isAdmin フィールドは変更不可（自分でフラグを立てられないようにする）
+        request.resource.data.isAdmin == resource.data.isAdmin;
+    }
+  }
+}
