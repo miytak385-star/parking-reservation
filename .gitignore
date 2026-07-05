@@ -19,6 +19,7 @@ dist-ssr
 docs/
 process/
 scripts/
+NOTES/
 
 # Editor directories and files
 .vscode/*
