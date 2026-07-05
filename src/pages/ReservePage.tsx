@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { collection, addDoc, getDocs, query, where, Timestamp } from "firebase/firestore";
+import {
+  Button, Dialog, DialogActions, DialogContent, DialogContentText,
+  DialogTitle, Snackbar, Alert,
+} from "@mui/material";
 import dayjs from "dayjs";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
@@ -28,29 +32,39 @@ const ReservePage = () => {
     purpose: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "error" | "success" }>({
+    open: false, message: "", severity: "error",
+  });
 
   if (!date || !spaceId) {
     navigate("/");
     return null;
   }
 
+  const showError = (message: string) => setSnackbar({ open: true, message, severity: "error" });
+
   const handleChange = (key: keyof ReserveFormValues, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = async () => {
-    if (!firebaseUser) return;
+  const handleSubmit = () => {
     const { startDate, startTime, endDate, endTime, roomNumber, name, phone, carNumber } = form;
     if (!startDate || !startTime || !endDate || !endTime || !roomNumber || !name || !phone || !carNumber) {
-      alert("必須項目を入力してください");
+      showError("必須項目を入力してください");
       return;
     }
-    if (!window.confirm("申請してよろしいですか？")) return;
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    setConfirmOpen(false);
+    if (!firebaseUser) return;
 
     setSubmitting(true);
     try {
-      const newStart = dayjs(`${startDate} ${startTime}`);
-      const newEnd = dayjs(`${endDate} ${endTime}`);
+      const newStart = dayjs(`${form.startDate} ${form.startTime}`);
+      const newEnd = dayjs(`${form.endDate} ${form.endTime}`);
 
       // 同じスペースのpending/approved予約を取得して重複チェック
       const q = query(
@@ -63,12 +77,11 @@ const ReservePage = () => {
         const data = doc.data();
         const existStart = dayjs(data.startAt.toDate());
         const existEnd = dayjs(data.endAt.toDate());
-        // 時間帯が重なるか判定（一方の終了が他方の開始より後であれば重複）
         return newStart.isBefore(existEnd) && newEnd.isAfter(existStart);
       });
 
       if (overlaps) {
-        alert("選択した時間帯はすでに予約が入っています。別の日時を選択してください。");
+        showError("選択した時間帯はすでに予約が入っています。別の日時を選択してください。");
         setSubmitting(false);
         return;
       }
@@ -107,21 +120,47 @@ const ReservePage = () => {
 
       navigate("/reserve/complete");
     } catch {
-      alert("申請に失敗しました。もう一度お試しください。");
+      showError("申請に失敗しました。もう一度お試しください。");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <ReserveForm
-      {...form}
-      spaceId={spaceId}
-      submitting={submitting}
-      onChange={handleChange}
-      onSubmit={handleSubmit}
-      onCancel={() => navigate(-1)}
-    />
+    <>
+      <ReserveForm
+        {...form}
+        spaceId={spaceId}
+        submitting={submitting}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate(-1)}
+      />
+
+      {/* 申請確認ダイアログ */}
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle>申請の確認</DialogTitle>
+        <DialogContent>
+          <DialogContentText>申請してよろしいですか？</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>キャンセル</Button>
+          <Button variant="contained" onClick={handleConfirm}>申請する</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* エラー通知 */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 

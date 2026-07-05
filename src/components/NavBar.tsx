@@ -16,8 +16,10 @@ const NavBar = () => {
     navigate("/login");
   };
 
+  const isAdminPage = location.pathname === "/admin";
+
   return (
-    <AppBar position="static">
+    <AppBar position="static" sx={isAdminPage ? { bgcolor: "#546e7a" } : {}}>
       <Toolbar sx={{ gap: 1 }}>
         <Typography variant="h6" sx={{ flexGrow: 1, cursor: "pointer" }} onClick={() => navigate("/")}>
           駐車スペース予約
