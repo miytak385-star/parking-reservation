@@ -11,6 +11,7 @@ const SPACE_LABEL: Record<SpaceId, string> = {
 type ReserveFormProps = ReserveFormValues & {
   spaceId: SpaceId;
   submitting: boolean;
+  errors: Partial<Record<keyof ReserveFormValues, string>>;
   onChange: (key: keyof ReserveFormValues, value: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -20,7 +21,7 @@ const ReserveForm = (props: ReserveFormProps) => {
   const {
     spaceId, startDate, startTime, endDate, endTime,
     roomNumber, name, phone, carNumber, carColor, purpose,
-    submitting, onChange, onSubmit, onCancel,
+    submitting, errors, onChange, onSubmit, onCancel,
   } = props;
 
   return (
@@ -30,17 +31,59 @@ const ReserveForm = (props: ReserveFormProps) => {
         スペース：{SPACE_LABEL[spaceId]}
       </Typography>
       <Divider />
-      <TextField label="利用開始日 *" type="date" value={startDate} onChange={(e) => onChange("startDate", e.target.value)} />
-      <TextField label="利用開始時間 *" type="time" value={startTime} onChange={(e) => onChange("startTime", e.target.value)} />
-      <TextField label="利用終了日 *" type="date" value={endDate} onChange={(e) => onChange("endDate", e.target.value)} />
-      <TextField label="利用終了時間 *" type="time" value={endTime} onChange={(e) => onChange("endTime", e.target.value)} />
+      <TextField
+        label="利用開始日 *" type="date" value={startDate}
+        onChange={(e) => onChange("startDate", e.target.value)}
+        error={!!errors.startDate} helperText={errors.startDate}
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
+      <TextField
+        label="利用開始時間 *" type="time" value={startTime}
+        onChange={(e) => onChange("startTime", e.target.value)}
+        error={!!errors.startTime} helperText={errors.startTime}
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
+      <TextField
+        label="利用終了日 *" type="date" value={endDate}
+        onChange={(e) => onChange("endDate", e.target.value)}
+        error={!!errors.endDate} helperText={errors.endDate}
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
+      <TextField
+        label="利用終了時間 *" type="time" value={endTime}
+        onChange={(e) => onChange("endTime", e.target.value)}
+        error={!!errors.endTime} helperText={errors.endTime}
+        slotProps={{ inputLabel: { shrink: true } }}
+      />
       <Divider />
-      <TextField label="部屋番号 *" value={roomNumber} onChange={(e) => onChange("roomNumber", e.target.value)} />
-      <TextField label="氏名 *" value={name} onChange={(e) => onChange("name", e.target.value)} />
-      <TextField label="電話番号 *" value={phone} onChange={(e) => onChange("phone", e.target.value)} />
-      <TextField label="車のナンバー *" value={carNumber} onChange={(e) => onChange("carNumber", e.target.value)} />
-      <TextField label="車の色" value={carColor} onChange={(e) => onChange("carColor", e.target.value)} />
-      <TextField label="利用目的" multiline rows={3} value={purpose} onChange={(e) => onChange("purpose", e.target.value)} />
+      <TextField
+        label="部屋番号 *" value={roomNumber}
+        onChange={(e) => onChange("roomNumber", e.target.value)}
+        error={!!errors.roomNumber} helperText={errors.roomNumber}
+      />
+      <TextField
+        label="氏名 *" value={name}
+        onChange={(e) => onChange("name", e.target.value)}
+        error={!!errors.name} helperText={errors.name}
+      />
+      <TextField
+        label="電話番号 *" value={phone}
+        onChange={(e) => onChange("phone", e.target.value)}
+        error={!!errors.phone} helperText={errors.phone}
+      />
+      <TextField
+        label="車のナンバー *" value={carNumber}
+        onChange={(e) => onChange("carNumber", e.target.value)}
+        error={!!errors.carNumber} helperText={errors.carNumber}
+      />
+      <TextField
+        label="車の色" value={carColor}
+        onChange={(e) => onChange("carColor", e.target.value)}
+      />
+      <TextField
+        label="利用目的" multiline rows={3} value={purpose}
+        onChange={(e) => onChange("purpose", e.target.value)}
+      />
       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 1 }}>
         <Button variant="outlined" onClick={onCancel}>キャンセル</Button>
         <Button variant="contained" onClick={onSubmit} disabled={submitting}>申請する</Button>

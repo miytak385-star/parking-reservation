@@ -33,6 +33,7 @@ const ReservePage = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof ReserveFormValues, string>>>({});
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "error" | "success" }>({
     open: false, message: "", severity: "error",
   });
@@ -46,12 +47,24 @@ const ReservePage = () => {
 
   const handleChange = (key: keyof ReserveFormValues, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    // 入力したらそのフィールドのエラーを消す
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
   const handleSubmit = () => {
     const { startDate, startTime, endDate, endTime, roomNumber, name, phone, carNumber } = form;
-    if (!startDate || !startTime || !endDate || !endTime || !roomNumber || !name || !phone || !carNumber) {
-      showError("必須項目を入力してください");
+    const newErrors: Partial<Record<keyof ReserveFormValues, string>> = {};
+    if (!startDate)   newErrors.startDate   = "利用開始日を入力してください";
+    if (!startTime)   newErrors.startTime   = "利用開始時間を入力してください";
+    if (!endDate)     newErrors.endDate     = "利用終了日を入力してください";
+    if (!endTime)     newErrors.endTime     = "利用終了時間を入力してください";
+    if (!roomNumber)  newErrors.roomNumber  = "部屋番号を入力してください";
+    if (!name)        newErrors.name        = "氏名を入力してください";
+    if (!phone)       newErrors.phone       = "電話番号を入力してください";
+    if (!carNumber)   newErrors.carNumber   = "車のナンバーを入力してください";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
     setConfirmOpen(true);
@@ -132,6 +145,7 @@ const ReservePage = () => {
         {...form}
         spaceId={spaceId}
         submitting={submitting}
+        errors={errors}
         onChange={handleChange}
         onSubmit={handleSubmit}
         onCancel={() => navigate(-1)}
