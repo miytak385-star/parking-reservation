@@ -2,7 +2,7 @@ import { Timestamp } from "firebase/firestore";
 
 export type SpaceId = "A" | "B" | "C" | "ALL";
 export type CarType = "normal" | "light";
-export type ReservationStatus = "pending" | "approved" | "denied";
+export type ReservationStatus = "pending" | "approved" | "denied" | "cancelled";
 
 export type Reservation = {
   id: string;

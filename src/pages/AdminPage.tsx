@@ -33,10 +33,11 @@ const adminTheme = createTheme({
 });
 
 // ステータスの表示ラベルと色
-const STATUS_LABEL: Record<ReservationStatus, { label: string; color: "warning" | "success" | "error" }> = {
-  pending:  { label: "承認待ち", color: "warning" },
-  approved: { label: "承認済み", color: "success" },
-  denied:   { label: "否認",     color: "error" },
+const STATUS_LABEL: Record<ReservationStatus, { label: string; color: "warning" | "success" | "error" | "default" }> = {
+  pending:   { label: "承認待ち",   color: "warning" },
+  approved:  { label: "承認済み",   color: "success" },
+  denied:    { label: "否認",       color: "error" },
+  cancelled: { label: "キャンセル", color: "default" },
 };
 
 const SPACE_LABEL: Record<string, string> = {
@@ -228,6 +229,7 @@ const AdminPage = () => {
             <MenuItem value="pending">承認待ち</MenuItem>
             <MenuItem value="approved">承認済み</MenuItem>
             <MenuItem value="denied">否認</MenuItem>
+            <MenuItem value="cancelled">キャンセル</MenuItem>
           </Select>
         </Box>
         <DataGrid

@@ -9,10 +9,11 @@ import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
 import type { Reservation } from "../types";
 
-const STATUS_LABEL: Record<string, { label: string; color: "warning" | "success" | "error" }> = {
-  pending:  { label: "承認待ち", color: "warning" },
-  approved: { label: "承認済み", color: "success" },
-  denied:   { label: "否認",     color: "error" },
+const STATUS_LABEL: Record<string, { label: string; color: "warning" | "success" | "error" | "default" }> = {
+  pending:   { label: "承認待ち",   color: "warning" },
+  approved:  { label: "承認済み",   color: "success" },
+  denied:    { label: "否認",       color: "error" },
+  cancelled: { label: "キャンセル", color: "default" },
 };
 
 const SPACE_LABEL: Record<string, string> = {
@@ -45,11 +46,11 @@ const MyReservationsPage = () => {
   const handleCancelConfirm = async () => {
     if (!cancelTargetId) return;
     await updateDoc(doc(db, "reservations", cancelTargetId), {
-      status: "denied",
+      status: "cancelled",
       updatedAt: Timestamp.now(),
     });
     setReservations((prev) =>
-      prev.map((r) => r.id === cancelTargetId ? { ...r, status: "denied" } : r)
+      prev.map((r) => r.id === cancelTargetId ? { ...r, status: "cancelled" } : r)
     );
     setCancelTargetId(null);
   };
