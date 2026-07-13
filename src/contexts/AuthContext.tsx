@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import type { User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import type { AppUser } from "../types";
 
@@ -30,8 +30,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setFirebaseUser(user);
 
       if (user) {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        setAppUser(snap.exists() ? (snap.data() as AppUser) : null);
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          setAppUser(snap.data() as AppUser);
+        } else {
+          // 初回ログイン時（Googleログインなど）にusersドキュメントを自動作成
+          const newUser: AppUser = {
+            uid: user.uid,
+            email: user.email ?? "",
+            isAdmin: false,
+          };
+          await setDoc(userRef, newUser);
+          setAppUser(newUser);
+        }
       } else {
         setAppUser(null);
       }

@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import CalendarPage from "./pages/CalendarPage";
 import ReservePage from "./pages/ReservePage";
 import ReserveCompletePage from "./pages/ReserveCompletePage";
@@ -11,6 +12,7 @@ const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={<PrivateRoute><CalendarPage /></PrivateRoute>} />
       <Route path="/reserve" element={<PrivateRoute><ReservePage /></PrivateRoute>} />
       <Route path="/reserve/complete" element={<PrivateRoute><ReserveCompletePage /></PrivateRoute>} />

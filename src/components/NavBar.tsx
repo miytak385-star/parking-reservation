@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
+import { AppBar, Button, Toolbar, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";

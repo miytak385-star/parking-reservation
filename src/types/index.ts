@@ -53,5 +53,5 @@ export type AppUser = {
   uid: string;
   email: string;
   isAdmin: boolean;
-  roomNumber: string;
+  roomNumber?: string;
 };
